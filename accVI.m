@@ -14,7 +14,7 @@ else
     c = -ePower;
 end
 
-I = min(roots([ a b c]));
+I = min(quadroots([ a b c]));
 CCV = (OCV - I*packR);
 
 end

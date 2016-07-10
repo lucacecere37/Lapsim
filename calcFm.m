@@ -21,7 +21,7 @@ function [Fm] = calcFm(pt, tire, instaAccV, instaBackEMF)
     b = w;
     c = instaBackEMF*pt.motor.Io - pt.motor.peakPower*1000;
     
-    plT = max(roots([ a b c ]));
+    plT = max(quadroots([ a b c ]));
     
     
 

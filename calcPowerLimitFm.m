@@ -55,9 +55,9 @@ xF = currentFxF;
 f = a*xF^2 + b*xF - e;
 
 if(~regen)
-    yF = max(roots([c d f]));
+    yF = max(quadroots([c d f]));
 else
-    yF = min(roots([c d f]));
+    yF = min(quadroots([c d f]));
 end
 
 lossesF = 2*calcLoss(xF,car.ptF,car.tire,backEMFF);
@@ -70,9 +70,9 @@ yR = currentFxR;
 f = c*yR^2 + d*yR - e;
 
 if(~regen)
-    xR = max(roots([a b f]));
+    xR = max(quadroots([a b f]));
 else
-    xR = min(roots([a b f]));
+    xR = min(quadroots([a b f]));
 end
 
 lossesF = 2*calcLoss(xR,car.ptF,car.tire,backEMFF);
@@ -94,7 +94,7 @@ g = abs(c^2/a) + abs(c);
 h = abs((b*c)/a) + abs(d);
 
 %solve for optimal rear force, yO
-yO = max(roots([g h -e]));
+yO = max(quadroots([g h -e]));
 
 %solve for optimal front force, xO
 xO = (c/a) * yO;
