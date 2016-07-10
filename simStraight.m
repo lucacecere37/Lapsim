@@ -17,6 +17,11 @@ function [rF, i] = simStraight(varargin)
     startIndex = p.Results.startIndex;
     rF = p.Results.r;
     sim = p.Results.sim;
+
+    
+    %set the regen flag
+    regen = false;
+    
     
     %TODO: fix case where one motor drags the other above accV
     %force motors to equal drag or normal torque, whichever is less
@@ -173,8 +178,7 @@ function [rF, i] = simStraight(varargin)
             rF(i,ePowerTotal) = rF(i,ePowerFL) + rF(i,ePowerFR) + rF(i,ePowerRL) ...
                 + rF(i,ePowerRR);
             
-            %set the regen flag
-            regen = false;
+        
             
             %engage power limiter if necessary
             if(rF(i,ePowerTotal) > car.acc.powerLimiter*1000)
