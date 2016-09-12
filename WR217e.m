@@ -1,8 +1,9 @@
 function [car] = WR217e()
 
 %% Powertrain Parameters
-car.acc.powerLimiter = 20; %kW
+car.acc.powerLimiter = 80; %kW
 car.acc.maxRegen = 20; %kW
+car.acc.SOC = 100;
 
 %Energus Pack with HG2 cells
 car.acc.cellR = .025;

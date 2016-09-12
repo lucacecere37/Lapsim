@@ -2,7 +2,7 @@ function [rF, i] = simStraight(varargin)
     
     p = inputParser;
     p.addOptional('sim',@isstruct)
-    p.addOptional('car', WR217e, @isstruct);
+    p.addOptional('car', initializeCar(WR217e), @isstruct);
     p.addOptional('plots',false, @islogical);
     p.addOptional('debug',false, @islogical);
     p.addOptional('x',75,@isnumeric);
@@ -56,11 +56,6 @@ function [rF, i] = simStraight(varargin)
             * convert('rad/s','rpm') /car.ptF.motor.Kv;
         rF(i,backEMFR) = rF(i-1,v)/car.tire.radius * car.ptR.gr ...
             * convert('rad/s','rpm') /car.ptR.motor.Kv;
-        
-        
-%         aeroDownF(i) = 0;
-%         aeroDownR(i) = 0;
-%         rF(i,aeroDrag) = 0;
         
         %reset iteration and error
         iteration = 1;
@@ -132,6 +127,28 @@ function [rF, i] = simStraight(varargin)
             rF(i,FxFR) = min(rF(i,FtFR),rF(i,FmFR));
             rF(i,FxRL) = min(rF(i,FtRL),rF(i,FmRL));
             rF(i,FxRR) = min(rF(i,FtRR),rF(i,FmRR));
+            
+%             %UNCOMMENT FOR ACCEL EVENT
+%             FxTotal = rF(i,FxFL) + rF(i,FxFR) + rF(i,FxRL) + rF(i,FxRR);
+%             
+%             %calculate top speed for each axle, take minimum
+%             if(iteration == 1)
+%                 vMaxGuessF = car.ptF.motor.Kv*rF(i-1,accV)/car.ptF.gr ...
+%                     * convert('rpm','rad/s') * car.tire.radius;
+%                 vMaxGuessR = car.ptR.motor.Kv*rF(i-1,accV)/car.ptR.gr ...
+%                     * convert('rpm','rad/s') * car.tire.radius;
+%                 vMax = min(vMaxGuessF,vMaxGuessR);
+%             else
+%                 vMaxGuessF = car.ptF.motor.Kv*rF(i,accV)/car.ptF.gr ...
+%                     * convert('rpm','rad/s') * car.tire.radius;
+%                 vMaxGuessR = car.ptR.motor.Kv*rF(i,accV)/car.ptR.gr ...
+%                     * convert('rpm','rad/s') * car.tire.radius;
+%                 vMax = min(vMaxGuessF,vMaxGuessR);
+%             end
+%             
+%             if(rF(i-1,v) >= vMax)
+%                 rF(i,aeroDrag) = FxTotal;
+%             end
             
             
             %calculate new long accel
@@ -249,37 +266,14 @@ function [rF, i] = simStraight(varargin)
     rF(i-1,:) = fixEnd;
     
     if(plots)
-       figure
-        plot(rF(:,t), aG)
-        ylim([ 0 1.1*max(aG)])
-        xlabel('Time (sec)')
-        ylabel('Longitudinal Acceleration (g)')
-    %     
-       figure
-        plot(rF(:,t), vMPH)
-        ylim([ 0 1.1*max(vMPH)])
-        xlabel('Time (sec)')
-        ylabel('Velocity (mph)')
-    %     
-    %     
-    %     figure
-    %     hold all
-    %     plot(t,FtFL)
-    %     plot(t,FmFL)
-    %     hold off
-    %     legend('Available Traction','Motor Force')
-    %     title('Front Motor')
-    %     
-    %     figure
-    %     hold all
-    %     plot(t,FtRL)
-    %     plot(t,FmRL)
-    %     hold off
-    %     legend('Available Traction','Motor Force')
-    %     title('Rear Motor')
-    %     
+        rF = rF(1:i-1,:);
 
-        %pctFzF = 
+        figure
+        plot(rF(:,t),rF(:,v))
+        
+        figure
+        plot(rF(:,t),rF(:,a))
+        
         figure
         hold all
         plot(rF(:,t),(rF(:,FxFL)+rF(:,FxFR)) ... 
@@ -292,20 +286,11 @@ function [rF, i] = simStraight(varargin)
         hold off
 
         figure
-        hold all
-        plot(rF(:,t),rF(:,FxFL))
-        plot(rF(:,t),rF(:,FxRL))
-        hold off
-
-        figure
         plot(rF(:,t),rF(:,ePowerTotal))
         hold all
-        plot(rF(:,t),netMechPowerCar)
         plot(rF(:,t),rF(:,mPowerTotal))
-        plot(rF(:,t),accPower)
         hold off
-        legend('Electrical Power','Car-level Mechanical Power', ...
-            'Sum of Motor Mechanical Powers','Total Acc Power (incl. losses)')
+        legend('Electrical Power','Sum of Motor Mechanical Powers')
 
         figure
         plot(rF(:,t),rF(:,accV))
@@ -313,53 +298,6 @@ function [rF, i] = simStraight(varargin)
         plot(rF(:,t),rF(:,backEMFF)); 
         plot(rF(:,t),rF(:,backEMFR)); 
         hold off
-
-        figure
-        plot(rF(:,t),eff)
-
-        figure
-        plot(rF(:,t),rF(:,ePowerFL)); 
-        hold all
-        plot(rF(:,t),rF(:,ePowerRL)); 
-        hold off
-
-    %     %what torque would have been
-    %     torqueWouldR = (car.acc.maxVoltage - backEMFR)/car.ptR.motor.Rm * car.ptR.motor.Kt * car.ptR.gr;
-    %     
-    %     %what torque should have been
-    %     torqueShouldR = (accV - backEMFR)/car.ptR.motor.Rm * car.ptR.motor.Kt * car.ptR.gr;
-    %     
-    %     %what torque was
-    %     torqueWasR = FxRR * car.tire.radius;
-    %     
-    %     %what torque would have been
-    %     torqueWouldF = (car.acc.maxVoltage - backEMFF)/car.ptF.motor.Rm * car.ptF.motor.Kt * car.ptF.gr;
-    %     
-    %     %what torque should have been
-    %     torqueShouldF = (accV - backEMFF)/car.ptF.motor.Rm * car.ptF.motor.Kt * car.ptF.gr;
-    %     
-    %     %what torque was
-    %     torqueWasF = FxFR * car.tire.radius;
-    %     
-    %     figure
-    %     plot(t,torqueWouldR)
-    %     hold all
-    %     plot(t,torqueShouldR)
-    %     plot(t,torqueWasR)
-    %     hold off
-    %     xlim([ 2.4 time])
-    %     ylim([-500 2000])
-    %     legend('would','should','was')
-    %     
-    %     figure
-    %     plot(t,torqueWouldF)
-    %     hold all
-    %     plot(t,torqueShouldF)
-    %     plot(t,torqueWasF)
-    %     hold off
-    %     xlim([ 2.4 time])
-    %     ylim([-500 2000])
-    %     legend('would','should','was')
     
     end
     

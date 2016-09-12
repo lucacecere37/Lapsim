@@ -5,14 +5,28 @@ function [time, noRegenEndurokWh, endurokWh] = simLap(varargin)
     p = inputParser;
     p.addOptional('car', WR217e, @isstruct);
     p.addOptional('plots',false, @islogical);
+    p.addOptional('debug',false,@islogical);
+    p.addOptional('SOC',0,@isnumeric)
+    p.addOptional('powerLimiter',0,@isnumeric);
     p.parse(varargin{:})
     car = p.Results.car;
     plots = p.Results.plots;
+    debug = p.Results.debug;
+    SOC = p.Results.SOC;
+    powerLimiter = p.Results.powerLimiter;
     
     i = 2;
     rF = zeros(1000000,62);
     
     %% Calculate Additional Car Parameters
+    
+    if(SOC ~= 0)
+        car.acc.SOC = SOC;
+    end
+    
+    if(powerLimiter ~= 0)
+        car.acc.powerLimiter = powerLimiter;
+    end
     
     car = initializeCar(car);
 
@@ -401,6 +415,9 @@ function [time, noRegenEndurokWh, endurokWh] = simLap(varargin)
         histogram(motorTorqueRR)
         title('Motor Torque RR')
 
+    end
+    
+    if(debug)
         keyboard
     end
 end

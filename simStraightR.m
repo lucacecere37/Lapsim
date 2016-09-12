@@ -40,14 +40,8 @@ function [rR, i] = simStraightR(varargin)
         * convert('rpm','rad/s') * car.tire.radius;
     vMaxGuessR = car.ptR.motor.Kv*car.acc.maxVoltage/car.ptR.gr ...
         * convert('rpm','rad/s') * car.tire.radius;
-    try
-        vMaxGuessAero = realsqrt((car.ch.effMass*sim.g*car.tire.latMu*radius) ...
-             /(car.ch.effMass - .5 * car.aero.cl * car.aero.airDensity * ...
-             car.aero.fa * car.tire.latMu*radius));
-    catch
-        vMaxGuessAero = inf;
-    end
-    vMax = min(vMaxGuessAero,min(vMaxGuessF,vMaxGuessR));
+    
+    vMax = min(vMaxGuessF,vMaxGuessR);
     
     while((rR(i-1,x) - rR(startIndex-1,x)) < runUntilx)
         
@@ -252,13 +246,6 @@ function [rR, i] = simStraightR(varargin)
     
     if(plots)
         rR = rR(1:i-1,:);
-        
-        
-        %accel in g's
-        aG = rR(:,a)./sim.g;
-
-        %velocity in mph
-        vMPH = rR(:,v) * convert('m/s','mph');
 
         %net mechanical power at car level, W
         netMechPowerCar = rR(:,a).*rR(:,v).*car.ch.effMass;
